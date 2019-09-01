@@ -10,12 +10,16 @@ This plugin  is based on [Embedded PostgreSQL Server library](https://github.com
 
 ### pgServerVersion
 
-The plugin currently supports next PostgreSQL versions: 9.5.7, 9.6.5, 10.0
+The plugin currently supports next PostgreSQL versions: 9.4.14, 9.5.15, 9.6.11, 10.6, 10.1. 
+Default is the latest version.
 
 You also may use aliases:
-* 9.5 -> 9.5.7
-* 9.6 -> 9.6.5
-* latest -> 10.0
+* 9.4 -> 9.4.14
+* 9.5 -> 9.5.15
+* 9.6 -> 9.6.11
+* 10 -> 10.6
+* 11 -> 11.1
+* latest -> 11.1
 
 ### pgDatabaseDir
 
@@ -38,6 +42,11 @@ Specify "no" to skip locale & charset definition.
 
 Charset for embedded PostgreSQL server. Leave empty for running the server with system charset.
 Specify "no" to skip locale & charset definition.
+
+### startupTimeout
+
+Timeout in milliseconds which we are waiting for Postgres server to start. 
+Default is 15000 milliseconds (15 seconds).
 
 ### dbName
 
