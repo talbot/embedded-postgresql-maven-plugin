@@ -10,7 +10,7 @@ This plugin  is based on [Embedded PostgreSQL Server library](https://github.com
 
 ### pgServerVersion
 
-The plugin currently supports next PostgreSQL versions: 9.4.14, 9.5.15, 9.6.11, 10.6, 10.1. 
+The plugin currently supports next PostgreSQL versions: 9.4.14, 9.5.15, 9.6.11, 10.6, 11.1. 
 Default is the latest version.
 
 You also may use aliases:
