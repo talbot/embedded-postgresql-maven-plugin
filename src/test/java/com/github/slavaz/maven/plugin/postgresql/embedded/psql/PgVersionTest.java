@@ -17,15 +17,15 @@ public class PgVersionTest {
     protected Object[][] getVersionsDataSource() {
         // @formatter:off
         return new Object[][] {
-                { null, Version.V10_0 },
-                {"latest", Version.V10_0 },
-                {"default", Version.V10_0 },
+                { null, Version.V11_1 },
+                {"latest", Version.V11_1 },
+                {"default", Version.V11_1 },
                 {"9.4", VersionEx.V9_4_14},
-                {"9.5", Version.V9_5_7},
-                {"9.5.7", Version.V9_5_7},
-                {"9.6", Version.V9_6_5},
-                {"9.6.5", Version.V9_6_5},
-                {"bla-bla-bla", Version.V10_0 },
+                {"9.5", Version.V9_5_15},
+                {"9.5.15", Version.V9_5_15},
+                {"9.6", Version.V9_6_11},
+                {"9.6.11", Version.V9_6_11},
+                {"bla-bla-bla", Version.V11_1 },
 
         };
         // @formatter:on

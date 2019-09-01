@@ -3,26 +3,38 @@ package com.github.slavaz.maven.plugin.postgresql.embedded.psql.util;
 import com.github.slavaz.maven.plugin.postgresql.embedded.psql.IPgInstanceProcessData;
 import com.github.slavaz.maven.plugin.postgresql.embedded.psql.PgVersion;
 import de.flapdoodle.embed.process.distribution.IVersion;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.logging.SystemStreamLog;
 import ru.yandex.qatools.embed.postgresql.config.AbstractPostgresConfig;
 import ru.yandex.qatools.embed.postgresql.config.PostgresConfig;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
-import static de.flapdoodle.embed.process.runtime.Network.getLocalHost;
+import static java.net.InetAddress.getLocalHost;
 
-public class PostgresConfigUtil {
+public final class PostgresConfigUtil {
 
-    public static PostgresConfig get(final IPgInstanceProcessData pgInstanceProcessData) throws
-            IOException {
+    private static final Log log = new SystemStreamLog();
+    private static final Set<String> LOCAL_HOSTS = new HashSet<>();
 
-        final AbstractPostgresConfig.Storage storage = getStorage(pgInstanceProcessData);
-        final AbstractPostgresConfig.Credentials creds = getCredentials(pgInstanceProcessData);
-        final IVersion version = getVersion(pgInstanceProcessData);
-        final PostgresConfig config = getConfig(pgInstanceProcessData, storage, creds, version);
+    static {
+        LOCAL_HOSTS.add("");
+        LOCAL_HOSTS.add("localhost");
+        LOCAL_HOSTS.add("127.0.0.1");
+    }
 
-        config.getAdditionalInitDbParams().addAll(getCharsetParameters(pgInstanceProcessData));
+    public static PostgresConfig get(@Nonnull IPgInstanceProcessData configData) throws IOException {
+        AbstractPostgresConfig.Storage storage = getStorage(configData);
+        AbstractPostgresConfig.Credentials credentials = getCredentials(configData);
+        IVersion version = getVersion(configData);
+        PostgresConfig config = getConfig(configData, storage, credentials, version);
 
+        config.getAdditionalInitDbParams().addAll(getCharsetParameters(configData));
+        log.info("Using Postgres configuration: " + config);
         return config;
     }
 
@@ -30,39 +42,36 @@ public class PostgresConfigUtil {
         return new CharsetParameterList(pgInstanceProcessData).get();
     }
 
-    private static PostgresConfig getConfig(final IPgInstanceProcessData pgInstanceProcessData, final
+    @Nonnull
+    private static PostgresConfig getConfig(@Nonnull IPgInstanceProcessData pgInstanceProcessData, final
     AbstractPostgresConfig.Storage storage, final AbstractPostgresConfig.Credentials creds, final IVersion version)
             throws IOException {
-
         return new PostgresConfig(version, getNet(pgInstanceProcessData), storage, new AbstractPostgresConfig
-                .Timeout(), creds);
+                .Timeout(pgInstanceProcessData.getStartupTimeout()), creds);
     }
 
-    private static AbstractPostgresConfig.Credentials getCredentials(final IPgInstanceProcessData
-                                                                             pgInstanceProcessData) {
-
-        return new AbstractPostgresConfig.Credentials(
-                pgInstanceProcessData.getUserName(), pgInstanceProcessData.getPassword());
+    @Nonnull
+    private static AbstractPostgresConfig.Credentials getCredentials(@Nonnull IPgInstanceProcessData processData) {
+        return new AbstractPostgresConfig.Credentials(processData.getUserName(), processData.getPassword());
     }
 
-    private static AbstractPostgresConfig.Storage getStorage(final IPgInstanceProcessData pgInstanceProcessData) throws
+    @Nonnull
+    private static AbstractPostgresConfig.Storage getStorage(@Nonnull IPgInstanceProcessData processData) throws
             IOException {
-
-        return new AbstractPostgresConfig.Storage(
-                pgInstanceProcessData.getDbName(), pgInstanceProcessData.getPgDatabaseDir());
+        return new AbstractPostgresConfig.Storage(processData.getDbName(), processData.getPgDatabaseDir());
     }
 
     private static IVersion getVersion(final IPgInstanceProcessData pgInstanceProcessData) {
-
         return PgVersion.get(pgInstanceProcessData.getPgServerVersion());
     }
 
-    private static AbstractPostgresConfig.Net getNet(final IPgInstanceProcessData pgInstanceProcessData) throws
+    @Nonnull
+    private static AbstractPostgresConfig.Net getNet(@Nonnull IPgInstanceProcessData configurationData) throws
             IOException {
-
-        final String host = "".equals(pgInstanceProcessData.getPgHost()) ? getLocalHost().getHostAddress() :
-                pgInstanceProcessData.getPgHost();
-
-        return new AbstractPostgresConfig.Net(host, pgInstanceProcessData.getPgPort());
+        String hostName = configurationData.getPgHost();
+        if (hostName == null || LOCAL_HOSTS.contains(hostName)) {
+            return new AbstractPostgresConfig.Net(getLocalHost().getHostAddress(), configurationData.getPgPort());
+        }
+        return new AbstractPostgresConfig.Net(configurationData.getPgHost(), configurationData.getPgPort());
     }
 }

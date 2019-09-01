@@ -19,7 +19,7 @@ public class StopGoalMojo extends AbstractGoalMojo {
             try {
                 getLog().info("Stopping PostgreSQL...");
                 new IsolatedPgInstanceManager(classLoader.get()).stop();
-                getLog().debug("PostgreSQL stopped.");
+                getLog().info("PostgreSQL stopped.");
             } catch (Exception e) {
                 getLog().error("Failed to stop PostgreSQL", e);
             }

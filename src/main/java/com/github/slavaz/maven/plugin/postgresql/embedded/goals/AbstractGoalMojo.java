@@ -21,7 +21,7 @@ public abstract class AbstractGoalMojo extends AbstractMojo {
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skipGoal) {
-            getLog().debug("Skipped.");
+            getLog().warn("Skipped.");
         } else {
             ProxyUtils.handleProxyConfigurjation(this.settings, getLog());
             doExecute();

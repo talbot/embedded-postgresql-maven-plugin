@@ -7,11 +7,10 @@ import com.github.slavaz.maven.plugin.postgresql.embedded.psql.IsolatedPgInstanc
 import com.github.slavaz.maven.plugin.postgresql.embedded.psql.data.PgInstanceProcessData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -28,7 +27,7 @@ public class StartGoalMojo extends AbstractGoalMojo {
     @Parameter(defaultValue = "latest", property = "pgVersion", required = true)
     private String pgServerVersion;
 
-    @Parameter(property = "pgDatabasedir")
+    @Parameter(property = "pgDatabasedir", defaultValue = "${project.build.directory}/pg_data")
     private String pgDatabaseDir;
 
     @Parameter(property = "dbname", required = true)
@@ -52,10 +51,13 @@ public class StartGoalMojo extends AbstractGoalMojo {
     @Parameter(defaultValue = "5432", property = "pgPort", required = true)
     private int pgServerPort;
 
+    @Parameter(property = "startupTimeout", defaultValue = "15000")
+    private long startupTimeout;
+
     @Parameter(readonly = true, defaultValue = "${plugin.artifacts}")
     private List<Artifact> pluginDependencies;
 
-    protected void doExecute() throws MojoExecutionException, MojoFailureException {
+    protected void doExecute() {
 
         try {
             getLog().info("Starting PostgreSQL...");
@@ -64,8 +66,7 @@ public class StartGoalMojo extends AbstractGoalMojo {
             ClassLoader classLoader = ClassLoaderUtils.buildClassLoader(pluginDependencies);
             ClassLoaderHolder.setClassLoader(classLoader);
             new IsolatedPgInstanceManager(classLoader).start(buildInstanceProcessData());
-
-            getLog().debug("PostgreSQL started.");
+            getLog().info("PostgreSQL started.");
         } catch (IOException e) {
             getLog().error("Failed to start PostgreSQL", e);
         }
@@ -74,11 +75,13 @@ public class StartGoalMojo extends AbstractGoalMojo {
     private void calculateDatabaseDir() {
         if (StringUtils.isEmpty(pgDatabaseDir)) {
             pgDatabaseDir = projectBuildDir + File.separator + "pgdata";
+            getLog().info("Postgres is using " + pgDatabaseDir + " directory");
         }
     }
 
+    @Nonnull
     private IPgInstanceProcessData buildInstanceProcessData() {
         return new PgInstanceProcessData(pgServerVersion, pgHost, pgServerPort,
-                dbName, userName, password, pgDatabaseDir, pgLocale, pgCharset);
+                dbName, userName, password, pgDatabaseDir, pgLocale, pgCharset, startupTimeout);
     }
 }

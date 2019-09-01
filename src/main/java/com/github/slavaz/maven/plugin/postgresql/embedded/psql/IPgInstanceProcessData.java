@@ -36,4 +36,8 @@ public interface IPgInstanceProcessData {
     String getPgCharset();
 
     void setPgCharset(String pgCharset);
+
+    long getStartupTimeout();
+
+    void setStartupTimeout(long startupTimeout);
 }

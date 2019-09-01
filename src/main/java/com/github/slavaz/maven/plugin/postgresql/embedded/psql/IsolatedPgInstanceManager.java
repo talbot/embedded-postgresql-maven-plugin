@@ -3,8 +3,6 @@ package com.github.slavaz.maven.plugin.postgresql.embedded.psql;
 import com.github.slavaz.maven.plugin.postgresql.embedded.psql.data.PgInstanceProcessData;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 /**
  * Starts a PostgreSQL instance in a separate thread using a separate classloader. This is necessary, because the
@@ -22,15 +20,7 @@ public class IsolatedPgInstanceManager {
     }
 
     public void start(IPgInstanceProcessData data) throws IOException {
-        Thread postgresThread = new Thread(() -> {
-            Method startPostgres = getMethod("startPostgres", String.class, String.class, int.class, String.class,
-                    String.class, String.class, String.class, String.class, String.class);
-
-            invokeStaticMethod(startPostgres, data.getPgServerVersion(), data.getPgHost(), data.getPgPort(), data
-                            .getDbName(), data.getUserName(),
-                    data.getPassword(), data.getPgDatabaseDir(), data.getPgLocale(), data.getPgCharset());
-
-        }, "postgres-embedded");
+        Thread postgresThread = new Thread(() -> PgInstanceManager.start(data), "postgres-embedded");
         postgresThread.setContextClassLoader(classLoader);
         postgresThread.start();
 
@@ -42,45 +32,17 @@ public class IsolatedPgInstanceManager {
     }
 
     public void stop() {
-        invokeStaticMethod(getMethod("stopPostgres"));
+        PgInstanceManager.stop();
     }
 
     @SuppressWarnings("unused")
     public static void startPostgres(String pgServerVersion, String pgHost, int pgPort, String dbName, String userName, String password,
-                                     String pgDatabaseDir, String pgLocale, String pgCharset) throws IOException {
-        PgInstanceManager.start(new PgInstanceProcessData(pgServerVersion, pgHost, pgPort, dbName, userName, password, pgDatabaseDir, pgLocale, pgCharset));
+                                     String pgDatabaseDir, String pgLocale, String pgCharset, long startupTimeout) {
+        PgInstanceManager.start(new PgInstanceProcessData(pgServerVersion, pgHost, pgPort, dbName, userName, password, pgDatabaseDir, pgLocale, pgCharset, startupTimeout));
     }
 
     @SuppressWarnings("unused")
-    public static void stopPostgres() throws InterruptedException {
+    public static void stopPostgres() {
         PgInstanceManager.stop();
     }
-
-    private Method getMethod(String methodName, Class<?>... parameterTypes) {
-        Class<?> managerClass = loadClass(IsolatedPgInstanceManager.class.getName());
-        try {
-            return managerClass.getMethod(methodName, parameterTypes);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("No method " + methodName + " on " + managerClass, e);
-        }
-    }
-
-    private Class loadClass(String className) {
-        try {
-            return classLoader.loadClass(className);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Class not found: " + className, e);
-        }
-    }
-
-    private static void invokeStaticMethod(Method m, Object... arguments) {
-        try {
-            m.invoke(null, arguments);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Method " + m.getName() + " not accessible", e);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException("Invocation of method " + m.getName() + " threw exception", e);
-        }
-    }
-
 }

@@ -6,6 +6,9 @@ import com.github.slavaz.maven.plugin.postgresql.embedded.psql.IPgInstanceProces
  * Created by slavaz on 13/02/17.
  */
 public class PgInstanceProcessData implements IPgInstanceProcessData {
+
+    private static final long DEFAULT_STARTUP_TIMEOUT = 15_000L;
+
     private String pgServerVersion;
 
     private String pgHost;
@@ -24,7 +27,9 @@ public class PgInstanceProcessData implements IPgInstanceProcessData {
 
     private String pgCharset;
 
-    public PgInstanceProcessData(String pgServerVersion, String pgHost, int pgPort, String dbName, String userName, String password, String pgDatabaseDir, String pgLocale, String pgCharset) {
+    private long startupTimeout = DEFAULT_STARTUP_TIMEOUT;
+
+    public PgInstanceProcessData(String pgServerVersion, String pgHost, int pgPort, String dbName, String userName, String password, String pgDatabaseDir, String pgLocale, String pgCharset, long startupTimeout) {
         this.pgServerVersion = pgServerVersion;
         this.pgHost = pgHost;
         this.pgPort = pgPort;
@@ -34,6 +39,7 @@ public class PgInstanceProcessData implements IPgInstanceProcessData {
         this.pgDatabaseDir = pgDatabaseDir;
         this.pgLocale = pgLocale;
         this.pgCharset = pgCharset;
+        this.startupTimeout = startupTimeout;
     }
 
     public PgInstanceProcessData() {
@@ -109,5 +115,31 @@ public class PgInstanceProcessData implements IPgInstanceProcessData {
 
     public void setPgCharset(String pgCharset) {
         this.pgCharset = pgCharset;
+    }
+
+    @Override
+    public long getStartupTimeout() {
+        return this.startupTimeout < 1L ? DEFAULT_STARTUP_TIMEOUT : this.startupTimeout;
+    }
+
+    @Override
+    public void setStartupTimeout(long startupTimeout) {
+        this.startupTimeout = startupTimeout;
+    }
+
+    @Override
+    public String toString() {
+        return "PgInstanceProcessData{" +
+                "pgServerVersion='" + pgServerVersion + '\'' +
+                ", pgHost='" + pgHost + '\'' +
+                ", pgPort=" + pgPort +
+                ", dbName='" + dbName + '\'' +
+                ", userName='" + userName + '\'' +
+                ", password='" + password + '\'' +
+                ", pgDatabaseDir='" + pgDatabaseDir + '\'' +
+                ", pgLocale='" + pgLocale + '\'' +
+                ", pgCharset='" + pgCharset + '\'' +
+                ", startupTimeout=" + startupTimeout +
+                '}';
     }
 }
