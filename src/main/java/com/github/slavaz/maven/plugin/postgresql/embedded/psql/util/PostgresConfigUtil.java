@@ -3,6 +3,7 @@ package com.github.slavaz.maven.plugin.postgresql.embedded.psql.util;
 import com.github.slavaz.maven.plugin.postgresql.embedded.psql.IPgInstanceProcessData;
 import com.github.slavaz.maven.plugin.postgresql.embedded.psql.PgVersion;
 import de.flapdoodle.embed.process.distribution.IVersion;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import ru.yandex.qatools.embed.postgresql.config.AbstractPostgresConfig;
@@ -11,21 +12,12 @@ import ru.yandex.qatools.embed.postgresql.config.PostgresConfig;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 import static java.net.InetAddress.getLocalHost;
 
 public final class PostgresConfigUtil {
 
     private static final Log log = new SystemStreamLog();
-    private static final Set<String> LOCAL_HOSTS = new HashSet<>();
-
-    static {
-        LOCAL_HOSTS.add("");
-        LOCAL_HOSTS.add("localhost");
-        LOCAL_HOSTS.add("127.0.0.1");
-    }
 
     public static PostgresConfig get(@Nonnull IPgInstanceProcessData configData) throws IOException {
         AbstractPostgresConfig.Storage storage = getStorage(configData);
@@ -69,9 +61,9 @@ public final class PostgresConfigUtil {
     private static AbstractPostgresConfig.Net getNet(@Nonnull IPgInstanceProcessData configurationData) throws
             IOException {
         String hostName = configurationData.getPgHost();
-        if (hostName == null || LOCAL_HOSTS.contains(hostName)) {
+        if (StringUtils.isBlank(hostName)) {
             return new AbstractPostgresConfig.Net(getLocalHost().getHostAddress(), configurationData.getPgPort());
         }
-        return new AbstractPostgresConfig.Net(configurationData.getPgHost(), configurationData.getPgPort());
+        return new AbstractPostgresConfig.Net(hostName, configurationData.getPgPort());
     }
 }
